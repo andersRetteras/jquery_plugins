@@ -338,10 +338,25 @@
   	this.results = results; // make public
   	this.$results = $(results);
 
-  	// Create jQuery object for results.
-  	var $results = $(results);
-  	$results.hide().addClass(options.resultsClass).css("position", "absolute");
-  	if(options.width > 0) $results.css("width", options.width);
+        // Create jQuery object for results.
+        var $results = $(results);
+        
+        // Added by Anders Retterås
+        // Added functionality to track clicking on scrollbars in MSIE / Opera
+        // Workaround prevents onblur event to fire on txt input below
+        var clickedActualListItem = true;
+        $results.mousedown(function(){
+		if (!$.browser.mozilla){
+			if (window.event.srcElement.tagName == "DIV"){						
+				clickedActualListItem = false;
+			}else{
+				clickedActualListItem = true;
+			}
+		}
+        });
+        
+        $results.hide().addClass(options.resultsClass).css("position", "absolute");
+        if (options.width > 0) $results.css("width", options.width);
 
   	// Add to body element.
   	$("body").append(results);
@@ -387,10 +402,16 @@
   		that.hasFocus = true;
   	})
   	.blur(function(){
-		  that.selectCurrent();
-  		// track whether the field has focus
-  		that.hasFocus = false;
-  		that.hideResults();
+		// Fire onblur action only when you are sure that the user didnt click on scrollbar
+		// workaround for bug in IE and OPERA
+		if(clickedActualListItem){
+			that.selectCurrent();
+			// track whether the field has focus
+			that.hasFocus = false;
+			that.hideResults();
+  	        }else{
+			window.event.srcElement.focus();
+  	        }
   	});
 
     this.cacheLength = 1;
